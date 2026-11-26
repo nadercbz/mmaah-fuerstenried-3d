@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mmaah Fürstenrieder Straße 3D</title>
+<meta name="description" content="Mmaah München, Fürstenrieder Straße 26, Eckladen, interaktives 3D Modell">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0e0e10; --glas:rgba(20,20,24,.62); --rand:rgba(255,255,255,.12); --text:#f4f2ee; --dim:#a9a6a0; --rot:#C9161A; --orange:#FF4005; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font-family:Archivo, system-ui, sans-serif; overflow:hidden; }
+  canvas { display:block; touch-action:none; }
+  #kopf { position:fixed; top:max(14px, env(safe-area-inset-top)); left:16px; right:16px; display:flex; align-items:center; gap:12px; pointer-events:none; }
+  #kopf .marke { pointer-events:auto; background:var(--glas); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid var(--rand);
+    border-radius:14px; padding:10px 14px; display:flex; align-items:center; gap:10px; }
+  #kopf .marke b { font-weight:900; letter-spacing:.02em; }
+  #kopf .marke span { color:var(--dim); font-size:13px; }
+  .punkt { width:10px; height:10px; border-radius:50%; background:var(--orange); box-shadow:0 0 12px var(--orange); }
+  #leiste { position:fixed; left:16px; right:16px; bottom:max(14px, env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+  .reihe { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; pointer-events:auto; padding-bottom:2px; }
+  .reihe::-webkit-scrollbar { display:none; }
+  button { font:inherit; font-size:13px; font-weight:700; color:var(--text); background:var(--glas); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--rand); border-radius:999px; padding:9px 14px; white-space:nowrap; cursor:pointer; transition:background .2s, border-color .2s; }
+  button:hover { border-color:rgba(255,255,255,.3); }
+  button.an { background:var(--rot); border-color:var(--rot); }
+  button.schalter.aus { color:var(--dim); }
+  .reihe .label { align-self:center; font-size:12px; font-weight:700; color:var(--dim); padding:0 4px 0 2px; letter-spacing:.06em; text-transform:uppercase; }
+  button.farbe { display:inline-flex; align-items:center; gap:8px; }
+  button.version.laedt { opacity:.55; }
+  #archiv { flex-wrap:wrap; max-height:34vh; overflow-y:auto; background:var(--glas); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid var(--rand); border-radius:16px; padding:10px; }
+  #archiv[hidden] { display:none; }
+  button.archivknopf.aus { color:var(--dim); }
+  #archivliste { display:contents; } #archivliste[hidden] { display:none; }
+  button.version.alt { color:var(--dim); } button.version.alt.an { color:var(--text); }
+  button.farbe i { width:14px; height:14px; border-radius:50%; border:1px solid rgba(255,255,255,.5); display:inline-block; }
+  #fpoben { position:fixed; top:max(14px, env(safe-area-inset-top)); right:16px; z-index:4; }
+  #hilfe { position:fixed; top:calc(max(14px, env(safe-area-inset-top)) + 50px); right:16px; color:var(--dim); font-size:12px; background:var(--glas); backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px); border:1px solid var(--rand); border-radius:12px; padding:9px 12px; line-height:1.45; max-width:250px; }
+  #laden { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; background:var(--bg); z-index:5; transition:opacity .6s; }
+  #laden .balken { width:min(320px, 70vw); height:4px; background:#26262a; border-radius:4px; overflow:hidden; }
+  #laden .balken i { display:block; height:100%; width:0; background:var(--orange); transition:width .2s; }
+  #laden small { color:var(--dim); }
+  #fotos { position:fixed; inset:0; background:rgba(8,8,10,.94); z-index:6; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:16px; }
+  #fotos[hidden] { display:none; }
+  #fotos img { max-width:100%; max-height:78vh; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,.6); }
+  #fotos .zeile { display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  #fotos small { color:var(--dim); }
+  button.galerieknopf { background:var(--orange); border-color:var(--orange); }
+  #galerie { position:fixed; inset:0; background:rgba(8,8,10,.96); z-index:6; overflow-y:auto; padding:max(16px, env(safe-area-inset-top)) 16px 24px; }
+  #galerie[hidden] { display:none; }
+  #galerie .kopfzeile { display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:1400px; margin:0 auto 14px; }
+  #galerie h2 { margin:0; font-size:20px; font-weight:900; }
+  #galerie h2 small { color:var(--dim); font-weight:500; font-size:14px; margin-left:8px; }
+  #raster { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:12px; max-width:1400px; margin:0 auto; }
+  #raster figure { margin:0; cursor:pointer; border-radius:12px; overflow:hidden; background:#1a1a1e; border:1px solid var(--rand); transition:transform .2s, border-color .2s; }
+  #raster figure:hover { transform:translateY(-2px); border-color:var(--orange); }
+  #raster img { display:block; width:100%; aspect-ratio:16/9; object-fit:cover; }
+  #raster figcaption { padding:8px 12px; font-size:13px; font-weight:700; }
+  #fotos { z-index:7; }
+  #fpui[hidden] { display:none; }
+  #fpkreuz { position:fixed; left:50%; top:50%; width:6px; height:6px; margin:-3px 0 0 -3px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,.35); pointer-events:none; z-index:3; }
+  #fphilfe { position:fixed; top:calc(max(14px, env(safe-area-inset-top)) + 50px); right:16px; color:var(--text); font-size:12px; background:var(--glas); backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px); border:1px solid var(--rand); border-radius:12px; padding:9px 12px; line-height:1.5; max-width:260px; pointer-events:none; }
+  #fpjoy { position:fixed; width:110px; height:110px; margin:-55px 0 0 -55px; border-radius:50%; border:2px solid rgba(255,255,255,.45); background:rgba(20,20,24,.35); pointer-events:none; z-index:3; }
+  #fpjoy i { position:absolute; left:50%; top:50%; width:46px; height:46px; margin:-23px 0 0 -23px; border-radius:50%; background:rgba(255,255,255,.85); }
+  #fpjoy[hidden] { display:none; }
+  button.fpknopf { background:#1f4fd8; border-color:#1f4fd8; }
+  button.fpknopf.an { background:var(--rot); border-color:var(--rot); }
+  body.fp #hilfe, body.fp #versionen, body.fp #ansichten { display:none; }
+  @media (max-width:640px) { #fphilfe { left:16px; right:auto; top:auto; bottom:calc(max(14px, env(safe-area-inset-bottom)) + 52px); } }
+  @media (max-width:640px) { #hilfe { display:none; } #kopf .marke span { display:none; } button { font-size:12px; padding:8px 12px; } }
+</style>
+</head>
+<body>
+<div id="laden"><div style="font-weight:900;font-size:22px">Mmaah München</div><div class="balken"><i id="fortschritt"></i></div><small id="status">Modell wird geladen</small></div>
+<div id="kopf"><div class="marke"><div class="punkt"></div><b>MMAAH MÜNCHEN</b><span>Fürstenrieder Straße 26 · Eckladen nach Grundriss · 3D Entwurf</span></div></div>
+<div id="fpoben"><button id="fpknopf2" class="fpknopf">First Person</button></div>
+<div id="hilfe">Ziehen: drehen<br>Rechts ziehen oder zwei Finger: verschieben<br>Mausrad oder zusammenziehen: zoomen<br>Doppelklick: dorthin schauen</div>
+<div id="fotos" hidden><img id="fotobild" alt="Fotorealistisches Render"><small id="fototitel"></small>
+  <div class="zeile"><button id="fotozurueck">‹ Zurück</button><button id="fotoweiter">Weiter ›</button><button id="fotozu">Schließen</button></div></div>
+<div id="galerie" hidden><div class="kopfzeile"><h2>Galerie<small id="galerieanzahl"></small></h2><button id="galeriezu">Schließen</button></div><div id="raster"></div></div>
+<div id="fpui" hidden><div id="fpkreuz"></div><div id="fphilfe"></div><div id="fpjoy" hidden><i></i></div></div>
+<div id="leiste">
+  <div class="reihe" id="versionen"><span class="label">Version</span>
+    <button class="version" data-v="b">B Sitzecke Gitter hoch</button>
+    <button id="archivknopf" class="archivknopf">Archiv</button>
+    <span id="archivliste" hidden><button class="version alt" data-v="a">Archiv A Stehtische</button>
+    <button class="version alt" data-v="c">Archiv C Sitzecke Gitter niedrig</button></span></div>
+  <div class="reihe" id="ansichten"></div>
+  <div class="reihe" id="schalter">
+    <button class="schalter" data-tag="decke">Decke Laden</button>
+    <button class="schalter" data-tag="haus">Haus oben</button>
+    <button class="schalter" data-tag="fassade">Fassade</button>
+    <button class="schalter" data-tag="schnitt">Wände oben</button>
+    <button class="schalter" data-tag="strasse">Straße</button>
+    <button id="vonoben">Von oben</button>
+    <button id="fotoknopf">Fotos Path Tracing</button>
+    <button id="fpknopf" class="fpknopf">First Person</button>
+    <button id="galerieknopf" class="galerieknopf">Galerie</button>
+  </div>
+</div>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+               "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+// Versionen (Nader 23.11.2026): A mit Hochtischen, B mit niedriger Sitzecke an der Polsterbank, Umschalter per ?v=b
+// Nader 26.11.2026: gearbeitet wird nur noch in Version B, sie öffnet ohne Parameter. A und C liegen im Archiv (?v=a, ?v=c)
+const VER = ({ a: 'a', c: 'c' })[new URLSearchParams(location.search).get('v')] || 'b';
+const MOD = VER === 'a' ? 'modell/' : 'modell_' + VER + '/';
+const archivListe = document.getElementById('archivliste'), archivKnopf = document.getElementById('archivknopf');
+archivListe.hidden = VER === 'b'; archivKnopf.classList.toggle('an', VER !== 'b');
+archivKnopf.onclick = () => { archivListe.hidden = !archivListe.hidden; };
+document.querySelectorAll('#versionen button.version').forEach(b => {
+  b.classList.toggle('an', b.dataset.v === VER);
+  b.onclick = () => { if (b.dataset.v !== VER) location.search = b.dataset.v === 'b' ? '' : '?v=' + b.dataset.v; };
+});
+const NAMEN = {
+  '01_Iso_Schnitt': 'Iso Schnitt', '02_Iso_Eckhaus': 'Eckhaus', '03_Kreuzung': 'Kreuzung', '04_Eingang': 'Eingang',
+  '05_Innen_vom_Eingang': 'Vom Eingang', '07_Theke': 'Theke', '08_Gang': 'Gang', '09_Polsterbank_EAT': 'Polsterbank',
+  '10_Logowand': 'Logowand', '11_Eingang_innen': 'Eingang innen', '12_Sitznischen': 'Sitznischen'
+};
+
+// logarithmische Tiefe: Flächen wenige Millimeter voreinander (Paneele, Fliesen, Folien) flackern sonst aus der Ferne schwarz
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', logarithmicDepthBuffer: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.toneMappingExposure = 0.9;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+// Himmel über der Straße: weicher Verlauf
+const himmel = document.createElement('canvas'); himmel.width = 2; himmel.height = 256;
+const hg = himmel.getContext('2d'); const grad = hg.createLinearGradient(0, 0, 0, 256);
+grad.addColorStop(0, '#7fa6d6'); grad.addColorStop(0.55, '#c9d9ea'); grad.addColorStop(1, '#e8e4dc');
+hg.fillStyle = grad; hg.fillRect(0, 0, 2, 256);
+const himmelTex = new THREE.CanvasTexture(himmel); himmelTex.colorSpace = THREE.SRGBColorSpace;
+scene.background = himmelTex;
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(48, innerWidth / innerHeight, 0.03, 600);
+camera.position.set(25.2, 1.05, 4.4);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.target.set(12, 2.7, 4.7);
+controls.maxDistance = 90; controls.minDistance = 0.3;
+controls.zoomToCursor = true;
+controls.screenSpacePanning = true;
+
+const gruppen = {};
+
+let ansichten = [], lmMax = 4;
+
+const fortschritt = document.getElementById('fortschritt');
+const status = document.getElementById('status');
+
+async function start() {
+  const info = await fetch(MOD + 'ansichten.json').then(r => r.json());
+  ansichten = info.ansichten; lmMax = info.lmMax;
+  const lmTex = [];
+  const tl = new THREE.TextureLoader();
+  for (let i = 0; i < info.lightmaps; i++) {
+    const t = await tl.loadAsync(`${MOD}lm_${i}.jpg`);
+    t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; t.channel = 1;
+    t.minFilter = THREE.LinearMipmapLinearFilter; t.anisotropy = 4;
+    lmTex.push(t);
+  }
+  const loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
+  const gltf = await loader.loadAsync(MOD + 'laden.glb', e => {
+    if (e.total) fortschritt.style.width = (100 * e.loaded / e.total).toFixed(1) + '%';
+    status.textContent = 'Modell wird geladen ' + (e.loaded / 1e6).toFixed(1) + ' MB';
+  });
+  gltf.scene.traverse(o => {
+    if (!o.isMesh) return;
+    const tag = (o.userData && o.userData.tag) || (o.parent && o.parent.userData && o.parent.userData.tag) || 'laden';
+    (gruppen[tag] = gruppen[tag] || []).push(o);
+    const m = o.material;
+    const lm = m.userData ? m.userData.lightmap : -1;
+    const metall = m.userData ? (m.userData.metall || 0) : 0;
+    if (lm >= 0 && lmTex[lm]) {
+      m.lightMap = lmTex[lm];
+      m.lightMapIntensity = lmMax * Math.PI * 0.88;
+      m.envMapIntensity = metall > 0.3 ? 0.9 : 0.12;
+    } else {
+      m.envMapIntensity = m.transparent ? 1.0 : 0.6;
+    }
+    // Hochglanz Sticker und Klarlack (rote Theke): Spiegelung sichtbar machen
+    if (m.clearcoat > 0) m.envMapIntensity = 0.75;
+    // weiße Buchstaben im Logo: nicht überstrahlen, sonst verschwimmen sie aus der Ferne zu einer weißen Fläche
+    if (m.name && m.name.startsWith('logo_weiss')) { m.emissive.set(0); m.lightMapIntensity *= 0.5; m.color.set('#e9e4dc'); }
+    // Glasdekor: satiniert, beidseitig, wenig Spiegelung, vor dem Klarglas zeichnen
+    if (m.name && m.name.startsWith('dekor')) { m.envMapIntensity = 0.35; m.side = THREE.DoubleSide; o.renderOrder = 1; }
+    if (m.transparent) { m.depthWrite = false; if (!o.renderOrder) o.renderOrder = 2; }
+    if (m.map) m.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  });
+  scene.add(gltf.scene);
+  window.mm = { scene, camera, controls, THREE };   // zum Prüfen in der Konsole
+  // ohne gebackene Lightmap (Glas) etwas Grundlicht
+  scene.add(new THREE.HemisphereLight(0xfff6ea, 0x8a8178, 0.25));
+  baueKnoepfe();
+  schnittModus(ansichten[0]);
+  setzeAnsicht(ansichten[0], 0);
+  const l = document.getElementById('laden'); l.style.opacity = 0; setTimeout(() => l.remove(), 700);
+}
+
+function baueKnoepfe() {
+  const box = document.getElementById('ansichten');
+  ansichten.forEach((a, i) => {
+    const b = document.createElement('button');
+    b.textContent = NAMEN[a.name] || a.name;
+    b.onclick = () => { schnittModus(a); setzeAnsicht(a, 1.2); markiere(b); };
+    if (i === 0) b.classList.add('an');
+    box.appendChild(b);
+  });
+  document.querySelectorAll('.schalter').forEach(b => b.onclick = () => {
+    const aus = b.classList.toggle('aus');
+    (gruppen[b.dataset.tag] || []).forEach(o => o.visible = !aus);
+    if (fp.an) fpListe();
+  });
+  document.getElementById('vonoben').onclick = () => {
+    if (fp.an) fpEnde();
+    ['decke', 'haus', 'fassade', 'schnitt'].forEach(t => {
+      (gruppen[t] || []).forEach(o => o.visible = false);
+      document.querySelector(`.schalter[data-tag="${t}"]`).classList.add('aus');
+    });
+    setzeAnsicht({ pos: [6.1, 24, 3.6], ziel: [6.1, 0, 3.2], fov: 45 }, 1.2);
+    markiere(null);
+  };
+}
+
+// Iso Schnitt wie Naders Vorlage: Decke, Obergeschosse, Fassade und Wände über 1 m aus, sonst alles an
+function schnittModus(a) {
+  const an = /Schnitt/.test(a.name);
+  ['decke', 'haus', 'fassade', 'schnitt'].forEach(t => {
+    (gruppen[t] || []).forEach(o => o.visible = !an);
+    const k = document.querySelector(`.schalter[data-tag="${t}"]`);
+    if (k) k.classList.toggle('aus', an);
+  });
+}
+
+function markiere(b) { document.querySelectorAll('#ansichten button').forEach(x => x.classList.toggle('an', x === b)); }
+
+let flug = null;
+function fovFuer(f) { const asp = innerWidth / innerHeight; return asp < 1 ? Math.min(85, (f || 50) * (1 + (1 - asp) * 0.9)) : (f || 50); }
+function setzeAnsicht(a, dauer) {
+  const p1 = new THREE.Vector3(...a.pos), z1 = new THREE.Vector3(...a.ziel);
+  a = Object.assign({}, a, { fov: fovFuer(a.fov) });
+  // weite Sprünge (zum Beispiel von der Straße in den Laden) direkt umschalten, sonst fliegt die Kamera durch die Hauswand
+  if (dauer && camera.position.distanceTo(p1) > 6) dauer = 0;
+  if (!dauer) { camera.position.copy(p1); controls.target.copy(z1); camera.fov = a.fov || 50; camera.updateProjectionMatrix(); return; }
+  flug = { t: 0, dauer, p0: camera.position.clone(), z0: controls.target.clone(), p1, z1, f0: camera.fov, f1: a.fov || 50 };
+}
+
+// Doppelklick: dorthin schauen
+const ray = new THREE.Raycaster();
+renderer.domElement.addEventListener('dblclick', e => {
+  if (fp.an) return;
+  const v = new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(v, camera);
+  const hit = ray.intersectObjects(scene.children, true).find(h => h.object.visible && !h.object.material.transparent);
+  if (hit) flug = { t: 0, dauer: 0.8, p0: camera.position.clone(), z0: controls.target.clone(),
+    p1: camera.position.clone().lerp(hit.point, 0.35), z1: hit.point.clone(), f0: camera.fov, f1: camera.fov };
+});
+
+// First Person: durch den Laden laufen. Computer: Klick ins Bild, Maus schaut, W A S D oder Pfeile laufen, Shift schneller.
+// Handy: linker Daumen ist der Joystick zum Laufen, rechts ziehen zum Umschauen. Wände und Möbel halten auf, Stufen bis 35 cm geht man hoch.
+const fp = { an: false, gier: 0, nick: 0, tasten: {}, joy: null, blick: null, kollision: [] };
+const AUGE = 1.65, RADIUS = 0.28, STUFE = 0.35, UNTEN = new THREE.Vector3(0, -1, 0);
+const fpRay = new THREE.Raycaster(), fpV = new THREE.Vector3();
+const fpKnoepfe = [document.getElementById('fpknopf'), document.getElementById('fpknopf2')], fpUi = document.getElementById('fpui'), fpJoy = document.getElementById('fpjoy');
+const istTouch = matchMedia('(pointer: coarse)').matches;
+document.getElementById('fphilfe').innerHTML = istTouch
+  ? '<b>First Person</b><br>Linker Daumen: laufen<br>Rechts ziehen: umschauen'
+  : '<b>First Person</b><br>Klick ins Bild: Maus steuert den Blick<br>W A S D oder Pfeile: laufen<br>Shift: schneller · Esc: Maus frei';
+// Glastüren stehen im Modell zu, ihre Griffstangen (sf_tuer) dürfen deshalb nicht aufhalten
+function fpListe() { fp.kollision = []; scene.traverse(o => { if (o.isMesh && o.visible && !o.material.transparent && !/sf_tuer\|/.test(o.name)) fp.kollision.push(o); }); }
+function fpBoden(p) {
+  fpRay.set(fpV.set(p.x, p.y - AUGE + STUFE, p.z), UNTEN); fpRay.far = 4;
+  const h = fpRay.intersectObjects(fp.kollision, false)[0]; return h ? h.point.y : null;
+}
+function fpFrei(achse, d) {
+  const r = new THREE.Vector3(); r[achse] = Math.sign(d);
+  const fuss = camera.position.y - AUGE;
+  for (const h of [STUFE + 0.05, 0.9, 1.5]) {
+    fpRay.set(fpV.set(camera.position.x, fuss + h, camera.position.z), r); fpRay.far = Math.abs(d) + RADIUS;
+    if (fpRay.intersectObjects(fp.kollision, false).length) return false;
+  }
+  return true;
+}
+function fpSchritt(dt) {
+  const t = fp.tasten; let vor = 0, seit = 0;
+  if (t.KeyW || t.ArrowUp) vor += 1; if (t.KeyS || t.ArrowDown) vor -= 1;
+  if (t.KeyD) seit += 1; if (t.KeyA) seit -= 1;
+  if (t.ArrowLeft || t.KeyQ) fp.gier += 1.8 * dt; if (t.ArrowRight || t.KeyE) fp.gier -= 1.8 * dt;
+  if (fp.joy) { vor -= fp.joy.dy; seit += fp.joy.dx; }
+  const tempo = (t.ShiftLeft || t.ShiftRight) ? 3.2 : 1.5;
+  const vx = -Math.sin(fp.gier), vz = -Math.cos(fp.gier);
+  let wx = vx * vor - vz * seit, wz = vz * vor + vx * seit;
+  const l = Math.hypot(wx, wz); if (l > 1) { wx /= l; wz /= l; }
+  wx *= tempo * dt; wz *= tempo * dt;
+  // jede Achse für sich, so gleitet man an Wänden entlang statt hängen zu bleiben
+  if (wx && fpFrei('x', wx)) camera.position.x += wx;
+  if (wz && fpFrei('z', wz)) camera.position.z += wz;
+  const b = fpBoden(camera.position);
+  if (b !== null) camera.position.y += (b + AUGE - camera.position.y) * Math.min(1, dt * 10);
+  camera.rotation.set(fp.nick, fp.gier, 0, 'YXZ');
+}
+function fpStart() {
+  fp.an = true; flug = null; controls.enabled = false; fp.tasten = {};
+  ['decke', 'haus', 'fassade', 'schnitt', 'strasse'].forEach(t => {
+    (gruppen[t] || []).forEach(o => o.visible = true);
+    const k = document.querySelector(`.schalter[data-tag="${t}"]`); if (k) k.classList.remove('aus');
+  });
+  fpListe();
+  const p = camera.position; let dx, dz;
+  // Start aus jeder Ansicht: auf Augenhöhe bleibt man stehen, sonst landet man dort, wo die Ansicht hinschaut
+  // (Blickrichtung wie vorher), außerhalb des Ladens vor dem Eingang
+  const zt = controls.target, imLaden = zt.x > 0.3 && zt.x < 9.1 && zt.z > 0.3 && zt.z < 10.2;
+  if (p.y >= 0.5 && p.y <= 2.4) { dx = zt.x - p.x; dz = zt.z - p.z; }
+  else if (imLaden && fpBoden(fpV.set(zt.x, AUGE + 0.1, zt.z)) !== null) {
+    dx = zt.x - p.x; dz = zt.z - p.z; if (Math.hypot(dx, dz) < 0.01) { dx = 0; dz = -1; }
+    p.set(zt.x, AUGE + 0.1, zt.z);
+  }
+  else { p.set(14.6, 1.7, 10.2); dx = -4.5; dz = -1.2; }   // Start draußen vor dem Eingang
+  fp.gier = Math.atan2(-dx, -dz); fp.nick = 0;
+  const b = fpBoden(p); if (b !== null) p.y = b + AUGE;
+  camera.fov = fovFuer(68); camera.near = 0.05; camera.updateProjectionMatrix();
+  camera.rotation.set(0, fp.gier, 0, 'YXZ');
+  fpKnoepfe.forEach(k => { k.classList.add('an'); k.textContent = 'First Person beenden'; });
+  fpUi.hidden = false; document.body.classList.add('fp'); markiere(null);
+}
+function fpEnde() {
+  fp.an = false; fp.tasten = {}; fp.joy = null; fp.blick = null; fpJoy.hidden = true;
+  if (document.pointerLockElement) document.exitPointerLock();
+  camera.getWorldDirection(fpV); controls.target.copy(camera.position).addScaledVector(fpV, 1.5);
+  controls.enabled = true;
+  fpKnoepfe.forEach(k => { k.classList.remove('an'); k.textContent = 'First Person'; });
+  fpUi.hidden = true; document.body.classList.remove('fp');
+}
+window.mmfp = { fp, fpSchritt, fpStart, fpEnde };   // zum Prüfen in der Konsole
+fpKnoepfe.forEach(k => k.onclick = () => fp.an ? fpEnde() : fpStart());
+const cv = renderer.domElement;
+cv.addEventListener('click', () => { if (fp.an && !istTouch && !document.pointerLockElement) cv.requestPointerLock?.(); });
+addEventListener('mousemove', e => {
+  if (!fp.an || document.pointerLockElement !== cv) return;
+  fp.gier -= e.movementX * 0.0022; fp.nick = Math.max(-1.35, Math.min(1.35, fp.nick - e.movementY * 0.0022));
+});
+cv.addEventListener('pointerdown', e => {
+  if (!fp.an || document.pointerLockElement) return;
+  if (e.pointerType === 'touch' && e.clientX < innerWidth * 0.45 && !fp.joy) {
+    fp.joy = { id: e.pointerId, x0: e.clientX, y0: e.clientY, dx: 0, dy: 0 };
+    fpJoy.style.left = e.clientX + 'px'; fpJoy.style.top = e.clientY + 'px'; fpJoy.firstChild.style.transform = ''; fpJoy.hidden = false;
+  } else if (!fp.blick) fp.blick = { id: e.pointerId, x: e.clientX, y: e.clientY };
+});
+addEventListener('pointermove', e => {
+  if (!fp.an) return;
+  if (fp.joy && e.pointerId === fp.joy.id) {
+    let dx = (e.clientX - fp.joy.x0) / 50, dy = (e.clientY - fp.joy.y0) / 50; const l = Math.hypot(dx, dy); if (l > 1) { dx /= l; dy /= l; }
+    fp.joy.dx = Math.abs(dx) < 0.15 ? 0 : dx; fp.joy.dy = Math.abs(dy) < 0.15 ? 0 : dy;
+    fpJoy.firstChild.style.transform = `translate(${dx * 32}px, ${dy * 32}px)`;
+  } else if (fp.blick && e.pointerId === fp.blick.id) {
+    const k = e.pointerType === 'touch' ? 0.005 : 0.004;
+    fp.gier += (e.clientX - fp.blick.x) * k; fp.nick = Math.max(-1.35, Math.min(1.35, fp.nick + (e.clientY - fp.blick.y) * k));
+    fp.blick.x = e.clientX; fp.blick.y = e.clientY;
+  }
+});
+const fpLos = e => {
+  if (fp.joy && e.pointerId === fp.joy.id) { fp.joy = null; fpJoy.hidden = true; }
+  if (fp.blick && e.pointerId === fp.blick.id) fp.blick = null;
+};
+addEventListener('pointerup', fpLos); addEventListener('pointercancel', fpLos);
+addEventListener('keydown', e => { if (fp.an) { fp.tasten[e.code] = true; if (/^(Arrow|Space)/.test(e.code)) e.preventDefault(); } });
+addEventListener('keyup', e => { fp.tasten[e.code] = false; });
+addEventListener('blur', () => { fp.tasten = {}; });
+
+const uhr = new THREE.Clock();
+function schleife() {
+  const dt = Math.min(uhr.getDelta(), 0.05);
+  if (flug) {
+    flug.t += dt / flug.dauer;
+    const k = flug.t >= 1 ? 1 : 1 - Math.pow(1 - flug.t, 3);
+    camera.position.lerpVectors(flug.p0, flug.p1, k);
+    controls.target.lerpVectors(flug.z0, flug.z1, k);
+    camera.fov = flug.f0 + (flug.f1 - flug.f0) * k; camera.updateProjectionMatrix();
+    if (flug.t >= 1) flug = null;
+  }
+  if (fp.an) { fpSchritt(dt); renderer.render(scene, camera); requestAnimationFrame(schleife); return; }
+  controls.update();
+  // Nahgrenze wandert mit dem Abstand: mehr Tiefengenauigkeit, wenn man weit weg ist
+  const ab = camera.position.distanceTo(controls.target);
+  const nah = Math.min(1.5, Math.max(0.03, ab * 0.02));
+  if (Math.abs(nah - camera.near) > 0.005) { camera.near = nah; camera.updateProjectionMatrix(); }
+  renderer.render(scene, camera);
+  requestAnimationFrame(schleife);
+}
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+start().catch(e => { status.textContent = 'Fehler beim Laden: ' + e.message; console.error(e); });
+schleife();
+
+// Bildansicht groß mit Zurück und Weiter, genutzt von Galerie und Path Tracing Fotos
+const box = document.getElementById('fotos'), bild = document.getElementById('fotobild'), titel = document.getElementById('fototitel');
+let fListe = [], fOrdner = '', fI = 0;
+const zeig = () => { bild.src = fOrdner + fListe[fI].datei; titel.textContent = fListe[fI].titel + '  ·  ' + (fI + 1) + ' / ' + fListe.length; };
+function oeffneBild(liste, ordner, i) { fListe = liste; fOrdner = ordner; fI = i; box.hidden = false; zeig(); }
+document.getElementById('fotozu').onclick = () => box.hidden = true;
+document.getElementById('fotoweiter').onclick = () => { fI = (fI + 1) % fListe.length; zeig(); };
+document.getElementById('fotozurueck').onclick = () => { fI = (fI + fListe.length - 1) % fListe.length; zeig(); };
+bild.onclick = () => document.getElementById('fotoweiter').click();
+addEventListener('keydown', e => {
+  if (!box.hidden) { if (e.key === 'ArrowRight') document.getElementById('fotoweiter').click();
+    if (e.key === 'ArrowLeft') document.getElementById('fotozurueck').click(); if (e.key === 'Escape') box.hidden = true; return; }
+  if (e.key === 'Escape') document.getElementById('galerie').hidden = true;
+});
+
+// Fotorealistische Renders aus Blender Cycles (Path Tracing), Liste in fotos/liste.json
+(async () => {
+  let liste = [];
+  try { liste = await fetch('fotos/liste.json').then(r => r.json()); } catch (e) {}
+  const knopf = document.getElementById('fotoknopf');
+  if (!liste.length) { knopf.remove(); return; }
+  knopf.onclick = () => oeffneBild(liste, 'fotos/', 0);
+})();
+
+// Galerie: alle gerenderten Ansichten, Liste in galerie/liste.json (tools/galerie_bauen.py)
+(async () => {
+  let liste = [];
+  try { liste = await fetch('galerie/liste.json').then(r => r.json()); } catch (e) {}
+  const knopf = document.getElementById('galerieknopf'), gal = document.getElementById('galerie'), raster = document.getElementById('raster');
+  if (!liste.length) { knopf.remove(); return; }
+  document.getElementById('galerieanzahl').textContent = liste.length + ' Bilder';
+  liste.forEach((b, i) => {
+    const f = document.createElement('figure');
+    f.innerHTML = '<img loading="lazy" alt=""><figcaption></figcaption>';
+    f.querySelector('img').src = 'galerie/' + b.klein; f.querySelector('img').alt = b.titel;
+    f.querySelector('figcaption').textContent = b.titel;
+    f.onclick = () => oeffneBild(liste, 'galerie/', i);
+    raster.appendChild(f);
+  });
+  knopf.onclick = () => { gal.hidden = false; gal.scrollTop = 0; };
+  document.getElementById('galeriezu').onclick = () => gal.hidden = true;
+})();
+</script>
+</body>
+</html>
